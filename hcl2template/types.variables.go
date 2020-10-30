@@ -26,15 +26,20 @@ type LocalBlock struct {
 	Expr hcl.Expression
 }
 
+// VariableValue represents a variable value and its expression.
+type VariableValue struct {
+	// From tells were it was taken from, command/varfile/env/default
+	From  string
+	Value cty.Value
+	Expr  hcl.Expression
+}
+
 type Variable struct {
 	// CmdValue, VarfileValue, EnvValue, DefaultValue are possible values of
 	// the variable; The first value set from these will be the one used. If
 	// none is set; an error will be returned if a user tries to use the
 	// Variable.
-	CmdValue     cty.Value
-	VarfileValue cty.Value
-	EnvValue     cty.Value
-	DefaultValue cty.Value
+	VariableValues []VariableValue
 
 	// Cty Type of the variable. If the default value or a collected value is
 	// not of this type nor can be converted to this type an error diagnostic
@@ -59,21 +64,21 @@ type Variable struct {
 }
 
 func (v *Variable) GoString() string {
-	return fmt.Sprintf("{Type:%s,CmdValue:%s,VarfileValue:%s,EnvValue:%s,DefaultValue:%s}",
-		v.Type.GoString(),
-		PrintableCtyValue(v.CmdValue),
-		PrintableCtyValue(v.VarfileValue),
-		PrintableCtyValue(v.EnvValue),
-		PrintableCtyValue(v.DefaultValue),
-	)
+	b := &strings.Builder{}
+	fmt.Fprintf(b, "{type:%s", v.Type.GoString())
+	for _, vv := range v.VariableValues {
+		fmt.Fprintf(b, ",%s:%s", vv.From, vv.Value)
+	}
+	fmt.Fprintf(b, "}")
+	return b.String()
 }
 
 // validateValue ensures that all of the configured custom validations for a
 // variable value are passing.
 //
-func (v *Variable) validateValue(val cty.Value) (diags hcl.Diagnostics) {
+func (v *Variable) validateValue(val cty.Value, exrp hcl.Expression) (diags hcl.Diagnostics) {
 	if len(v.Validations) == 0 {
-		log.Printf("[TRACE] validateValue: not active for %s, so skipping", v.Name)
+		// log.Printf("[TRACE] validateValue: not active for %s, so skipping", v.Name)
 		return nil
 	}
 
@@ -138,14 +143,9 @@ func (v *Variable) validateValue(val cty.Value) (diags hcl.Diagnostics) {
 }
 
 func (v *Variable) Value() (cty.Value, hcl.Diagnostics) {
-	for _, value := range []cty.Value{
-		v.CmdValue,
-		v.VarfileValue,
-		v.EnvValue,
-		v.DefaultValue,
-	} {
-		if value != cty.NilVal {
-			return value, v.validateValue(value)
+	for _, vv := range v.VariableValues {
+		if vv.Value != cty.NilVal {
+			return vv.Value, v.validateValue(vv.Value, vv.Expr)
 		}
 	}
 
@@ -205,10 +205,14 @@ func (variables *Variables) decodeVariable(key string, attr *hcl.Attribute, ectx
 	}
 
 	(*variables)[key] = &Variable{
-		Name:         key,
-		DefaultValue: value,
-		Type:         value.Type(),
-		Range:        attr.Range,
+		Name: key,
+		VariableValues: []VariableValue{{
+			From:  "default",
+			Value: value,
+			Expr:  attr.Expr,
+		}},
+		Type:  value.Type(),
+		Range: attr.Range,
 	}
 
 	return diags
@@ -310,12 +314,16 @@ func (variables *Variables) decodeVariableBlock(block *hcl.Block, ectx *hcl.Eval
 			}
 		}
 
-		v.DefaultValue = defaultValue
+		v.VariableValues = append(v.VariableValues, VariableValue{
+			From:  "default",
+			Value: defaultValue,
+			Expr:  def.Expr,
+		})
 
 		// It's possible no type attribute was assigned so lets make sure we
 		// have a valid type otherwise there could be issues parsing the value.
 		if v.Type == cty.NilType {
-			v.Type = v.DefaultValue.Type()
+			v.Type = defaultValue.Type()
 		}
 	}
 
@@ -532,7 +540,11 @@ func (cfg *PackerConfig) collectInputVariableValues(env []string, files []*hcl.F
 				val = cty.DynamicVal
 			}
 		}
-		variable.EnvValue = val
+		variable.VariableValues = append(variable.VariableValues, VariableValue{
+			From:  "env",
+			Value: val,
+			Expr:  expr,
+		})
 	}
 
 	// files will contain files found in the folder then files passed as
@@ -616,7 +628,11 @@ func (cfg *PackerConfig) collectInputVariableValues(env []string, files []*hcl.F
 				}
 			}
 
-			variable.VarfileValue = val
+			variable.VariableValues = append(variable.VariableValues, VariableValue{
+				From:  "varfile",
+				Value: val,
+				Expr:  attr.Expr,
+			})
 		}
 	}
 
@@ -660,7 +676,11 @@ func (cfg *PackerConfig) collectInputVariableValues(env []string, files []*hcl.F
 			}
 		}
 
-		variable.CmdValue = val
+		variable.VariableValues = append(variable.VariableValues, VariableValue{
+			From:  "cmd",
+			Value: val,
+			Expr:  expr,
+		})
 	}
 
 	return diags

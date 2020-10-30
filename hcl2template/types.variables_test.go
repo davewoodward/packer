@@ -25,47 +25,59 @@ func TestParse_variables(t *testing.T) {
 				Basedir: filepath.Join("testdata", "variables"),
 				InputVariables: Variables{
 					"image_name": &Variable{
-						Name:         "image_name",
-						DefaultValue: cty.StringVal("foo-image-{{user `my_secret`}}"),
+						Name:           "image_name",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo-image-{{user `my_secret`}}")}},
 					},
 					"key": &Variable{
-						Name:         "key",
-						DefaultValue: cty.StringVal("value"),
+						Name:           "key",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("value")}},
 					},
 					"my_secret": &Variable{
-						Name:         "my_secret",
-						DefaultValue: cty.StringVal("foo"),
+						Name:           "my_secret",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo")}},
 					},
 					"image_id": &Variable{
-						Name:         "image_id",
-						DefaultValue: cty.StringVal("image-id-default"),
+						Name:           "image_id",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("image-id-default")}},
 					},
 					"port": &Variable{
-						Name:         "port",
-						DefaultValue: cty.NumberIntVal(42),
+						Name:           "port",
+						VariableValues: []VariableValue{{From: "default", Value: cty.NumberIntVal(42)}},
 					},
 					"availability_zone_names": &Variable{
 						Name: "availability_zone_names",
-						DefaultValue: cty.ListVal([]cty.Value{
-							cty.StringVal("us-west-1a"),
-						}),
+						VariableValues: []VariableValue{{
+							From: "default",
+							Value: cty.ListVal([]cty.Value{
+								cty.StringVal("us-west-1a"),
+							}),
+						}},
 						Description: fmt.Sprintln("Describing is awesome ;D"),
 					},
 					"super_secret_password": &Variable{
-						Name:         "super_secret_password",
-						Sensitive:    true,
-						DefaultValue: cty.NullVal(cty.String),
-						Description:  fmt.Sprintln("Handle with care plz"),
+						Name:      "super_secret_password",
+						Sensitive: true,
+						VariableValues: []VariableValue{{
+							From:  "default",
+							Value: cty.NullVal(cty.String),
+						}},
+						Description: fmt.Sprintln("Handle with care plz"),
 					},
 				},
 				LocalVariables: Variables{
 					"owner": &Variable{
-						Name:         "owner",
-						DefaultValue: cty.StringVal("Community Team"),
+						Name: "owner",
+						VariableValues: []VariableValue{{
+							From:  "default",
+							Value: cty.StringVal("Community Team"),
+						}},
 					},
 					"service_name": &Variable{
-						Name:         "service_name",
-						DefaultValue: cty.StringVal("forum"),
+						Name: "service_name",
+						VariableValues: []VariableValue{{
+							From:  "default",
+							Value: cty.StringVal("forum"),
+						}},
 					},
 				},
 			},
@@ -81,6 +93,10 @@ func TestParse_variables(t *testing.T) {
 				InputVariables: Variables{
 					"boolean_value": &Variable{
 						Name: "boolean_value",
+						VariableValues: []VariableValue{{
+							From:  "default",
+							Value: cty.BoolVal(false),
+						}},
 					},
 				},
 			},
@@ -96,6 +112,10 @@ func TestParse_variables(t *testing.T) {
 				InputVariables: Variables{
 					"boolean_value": &Variable{
 						Name: "boolean_value",
+						VariableValues: []VariableValue{{
+							From:  "default",
+							Value: cty.BoolVal(false),
+						}},
 					},
 				},
 			},
@@ -111,6 +131,10 @@ func TestParse_variables(t *testing.T) {
 				InputVariables: Variables{
 					"broken_type": &Variable{
 						Name: "broken_type",
+						VariableValues: []VariableValue{{
+							From:  "default",
+							Value: cty.UnknownVal(cty.DynamicPseudoType),
+						}},
 					},
 				},
 			},
@@ -126,8 +150,8 @@ func TestParse_variables(t *testing.T) {
 				Basedir: filepath.Join("testdata", "variables"),
 				InputVariables: Variables{
 					"broken_variable": &Variable{
-						Name:         "broken_variable",
-						DefaultValue: cty.BoolVal(true),
+						Name:           "broken_variable",
+						VariableValues: []VariableValue{{From: "default", Value: cty.BoolVal(true)}},
 					},
 				},
 			},
@@ -196,34 +220,37 @@ func TestParse_variables(t *testing.T) {
 				Basedir: "testdata/variables/complicated",
 				InputVariables: Variables{
 					"name_prefix": &Variable{
-						Name:         "name_prefix",
-						DefaultValue: cty.StringVal("foo"),
+						Name:           "name_prefix",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo")}},
 					},
 				},
 				LocalVariables: Variables{
 					"name_prefix": &Variable{
-						Name:         "name_prefix",
-						DefaultValue: cty.StringVal("foo"),
+						Name:           "name_prefix",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo")}},
 					},
 					"foo": &Variable{
-						Name:         "foo",
-						DefaultValue: cty.StringVal("foo"),
+						Name:           "foo",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo")}},
 					},
 					"bar": &Variable{
-						Name:         "bar",
-						DefaultValue: cty.StringVal("foo"),
+						Name:           "bar",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo")}},
 					},
 					"for_var": &Variable{
-						Name:         "for_var",
-						DefaultValue: cty.StringVal("foo"),
+						Name:           "for_var",
+						VariableValues: []VariableValue{{From: "default", Value: cty.StringVal("foo")}},
 					},
 					"bar_var": &Variable{
 						Name: "bar_var",
-						DefaultValue: cty.TupleVal([]cty.Value{
-							cty.StringVal("foo"),
-							cty.StringVal("foo"),
-							cty.StringVal("foo"),
-						}),
+						VariableValues: []VariableValue{{
+							From: "default",
+							Value: cty.TupleVal([]cty.Value{
+								cty.StringVal("foo"),
+								cty.StringVal("foo"),
+								cty.StringVal("foo"),
+							}),
+						}},
 					},
 				},
 			},
@@ -250,9 +277,11 @@ func TestParse_variables(t *testing.T) {
 				Basedir: filepath.Join("testdata", "variables"),
 				InputVariables: Variables{
 					"foo": &Variable{
-						DefaultValue: cty.StringVal("bar"),
-						Name:         "foo",
-						VarfileValue: cty.StringVal("wee"),
+						Name: "foo",
+						VariableValues: []VariableValue{
+							VariableValue{"default", cty.StringVal("bar"), nil},
+							VariableValue{"varfile", cty.StringVal("wee"), nil},
+						},
 					},
 				},
 			},
@@ -279,14 +308,14 @@ func TestParse_variables(t *testing.T) {
 				Basedir: filepath.Join("testdata", "variables"),
 				InputVariables: Variables{
 					"max_retries": &Variable{
-						Name:         "max_retries",
-						DefaultValue: cty.StringVal("1"),
-						Type:         cty.String,
+						Name:           "max_retries",
+						VariableValues: []VariableValue{{"default", cty.StringVal("1"), nil}},
+						Type:           cty.String,
 					},
 					"max_retries_int": &Variable{
-						Name:         "max_retries_int",
-						DefaultValue: cty.NumberIntVal(1),
-						Type:         cty.Number,
+						Name:           "max_retries_int",
+						VariableValues: []VariableValue{{"default", cty.NumberIntVal(1), nil}},
+						Type:           cty.Number,
 					},
 				},
 				Sources: map[SourceRef]SourceBlock{
@@ -365,8 +394,10 @@ func TestParse_variables(t *testing.T) {
 				Basedir: filepath.Join("testdata", "variables", "validation"),
 				InputVariables: Variables{
 					"image_id": &Variable{
-						DefaultValue: cty.StringVal("ami-something-something"),
-						Name:         "image_id",
+						VariableValues: []VariableValue{
+							{"default", cty.StringVal("ami-something-something"), nil},
+						},
+						Name: "image_id",
 						Validations: []*VariableValidation{
 							&VariableValidation{
 								ErrorMessage: `The image_id value must be a valid AMI id, starting with "ami-".`,
@@ -377,6 +408,28 @@ func TestParse_variables(t *testing.T) {
 			},
 			false, false,
 			[]packer.Build{},
+			false,
+		},
+
+		{"valid validation block - invalid default",
+			defaultParser,
+			parseTestArgs{"testdata/variables/validation/invalid_default.pkr.hcl", nil, nil},
+			&PackerConfig{
+				Basedir: filepath.Join("testdata", "variables", "validation"),
+				InputVariables: Variables{
+					"image_id": &Variable{
+						VariableValues: []VariableValue{{"default", cty.StringVal("ami-something-something"), nil}},
+						Name:           "image_id",
+						Validations: []*VariableValidation{
+							&VariableValidation{
+								ErrorMessage: `The image_id value must be a valid AMI id, starting with "ami-".`,
+							},
+						},
+					},
+				},
+			},
+			true, true,
+			nil,
 			false,
 		},
 	}
@@ -402,8 +455,10 @@ func TestVariables_collectVariableValues(t *testing.T) {
 
 		{name: "string",
 			variables: Variables{"used_string": &Variable{
-				DefaultValue: cty.StringVal("default_value"),
-				Type:         cty.String,
+				VariableValues: []VariableValue{
+					{"default", cty.StringVal("default_value"), nil},
+				},
+				Type: cty.String,
 			}},
 			args: args{
 				env: []string{`PKR_VAR_used_string=env_value`},
@@ -420,11 +475,13 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiags: false,
 			wantVariables: Variables{
 				"used_string": &Variable{
-					Type:         cty.String,
-					CmdValue:     cty.StringVal("cmd_value"),
-					VarfileValue: cty.StringVal("varfile_value"),
-					EnvValue:     cty.StringVal("env_value"),
-					DefaultValue: cty.StringVal("default_value"),
+					Type: cty.String,
+					VariableValues: []VariableValue{
+						{"default", cty.StringVal(`"default_value"`), nil},
+						{"env", cty.StringVal(`"env_value"`), nil},
+						{"varfile", cty.StringVal(`"varfile_value"`), nil},
+						{"cmd", cty.StringVal(`"cmd_value"`), nil},
+					},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -434,8 +491,10 @@ func TestVariables_collectVariableValues(t *testing.T) {
 
 		{name: "quoted string",
 			variables: Variables{"quoted_string": &Variable{
-				DefaultValue: cty.StringVal(`"default_value"`),
-				Type:         cty.String,
+				VariableValues: []VariableValue{
+					{"default", cty.StringVal(`"default_value"`), nil},
+				},
+				Type: cty.String,
 			}},
 			args: args{
 				env: []string{`PKR_VAR_quoted_string="env_value"`},
@@ -452,11 +511,13 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiags: false,
 			wantVariables: Variables{
 				"quoted_string": &Variable{
-					Type:         cty.String,
-					CmdValue:     cty.StringVal(`"cmd_value"`),
-					VarfileValue: cty.StringVal(`"varfile_value"`),
-					EnvValue:     cty.StringVal(`"env_value"`),
-					DefaultValue: cty.StringVal(`"default_value"`),
+					Type: cty.String,
+					VariableValues: []VariableValue{
+						{"default", cty.StringVal(`"default_value"`), nil},
+						{"env", cty.StringVal(`"env_value"`), nil},
+						{"varfile", cty.StringVal(`"varfile_value"`), nil},
+						{"cmd", cty.StringVal(`"cmd_value"`), nil},
+					},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -466,8 +527,10 @@ func TestVariables_collectVariableValues(t *testing.T) {
 
 		{name: "array of strings",
 			variables: Variables{"used_strings": &Variable{
-				DefaultValue: stringListVal("default_value_1"),
-				Type:         cty.List(cty.String),
+				VariableValues: []VariableValue{
+					{"default", stringListVal("default_value_1"), nil},
+				},
+				Type: cty.List(cty.String),
 			}},
 			args: args{
 				env: []string{`PKR_VAR_used_strings=["env_value_1", "env_value_2"]`},
@@ -484,11 +547,13 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiags: false,
 			wantVariables: Variables{
 				"used_strings": &Variable{
-					Type:         cty.List(cty.String),
-					CmdValue:     stringListVal("cmd_value_1"),
-					VarfileValue: stringListVal("varfile_value_1"),
-					EnvValue:     stringListVal("env_value_1", "env_value_2"),
-					DefaultValue: stringListVal("default_value_1"),
+					Type: cty.List(cty.String),
+					VariableValues: []VariableValue{
+						{"default", stringListVal("default_value_1"), nil},
+						{"env", stringListVal("env_value_1", "env_value_2"), nil},
+						{"varfile", stringListVal("varfile_value_1"), nil},
+						{"cmd", stringListVal("cmd_value_1"), nil},
+					},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -498,8 +563,8 @@ func TestVariables_collectVariableValues(t *testing.T) {
 
 		{name: "bool",
 			variables: Variables{"enabled": &Variable{
-				DefaultValue: cty.False,
-				Type:         cty.Bool,
+				VariableValues: []VariableValue{{"default", cty.False, nil}},
+				Type:           cty.Bool,
 			}},
 			args: args{
 				env: []string{`PKR_VAR_enabled=true`},
@@ -515,11 +580,13 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiags: false,
 			wantVariables: Variables{
 				"enabled": &Variable{
-					Type:         cty.Bool,
-					CmdValue:     cty.True,
-					VarfileValue: cty.False,
-					EnvValue:     cty.True,
-					DefaultValue: cty.False,
+					Type: cty.Bool,
+					VariableValues: []VariableValue{
+						{"default", cty.False, nil},
+						{"env", cty.True, nil},
+						{"varfile", cty.False, nil},
+						{"cmd", cty.True, nil},
+					},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -529,8 +596,8 @@ func TestVariables_collectVariableValues(t *testing.T) {
 
 		{name: "invalid env var",
 			variables: Variables{"used_string": &Variable{
-				DefaultValue: cty.StringVal("default_value"),
-				Type:         cty.String,
+				VariableValues: []VariableValue{{"default", cty.StringVal("default_value"), nil}},
+				Type:           cty.String,
 			}},
 			args: args{
 				env: []string{`PKR_VAR_used_string`},
@@ -540,8 +607,8 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiags: false,
 			wantVariables: Variables{
 				"used_string": &Variable{
-					Type:         cty.String,
-					DefaultValue: cty.StringVal("default_value"),
+					Type:           cty.String,
+					VariableValues: []VariableValue{{"default", cty.StringVal("default_value"), nil}},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -620,8 +687,8 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiagsHasError: true,
 			wantVariables: Variables{
 				"used_string": &Variable{
-					Type:     cty.List(cty.String),
-					EnvValue: cty.DynamicVal,
+					Type:           cty.List(cty.String),
+					VariableValues: []VariableValue{{"env", cty.DynamicVal, nil}},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -644,8 +711,8 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiagsHasError: true,
 			wantVariables: Variables{
 				"used_string": &Variable{
-					Type:         cty.Bool,
-					VarfileValue: cty.DynamicVal,
+					Type:           cty.Bool,
+					VariableValues: []VariableValue{{"varfile", cty.DynamicVal, nil}},
 				},
 			},
 			wantValues: map[string]cty.Value{
@@ -670,8 +737,8 @@ func TestVariables_collectVariableValues(t *testing.T) {
 			wantDiagsHasError: true,
 			wantVariables: Variables{
 				"used_string": &Variable{
-					Type:     cty.Bool,
-					CmdValue: cty.DynamicVal,
+					Type:           cty.Bool,
+					VariableValues: []VariableValue{{"cmd", cty.DynamicVal, nil}},
 				},
 			},
 			wantValues: map[string]cty.Value{
